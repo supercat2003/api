@@ -1,0 +1,293 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta
+            name="viewport"
+            content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>
+        Карта
+    </title>
+
+    <link
+            rel="stylesheet"
+            href="https://js.arcgis.com/4.25/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.25/"></script>
+
+    <style>
+        html,
+        body,
+        #viewDiv {
+            padding:  0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/ImageryTileLayer",
+            "esri/layers/TileLayer",
+            "esri/layers/GroupLayer",
+            "esri/rest/support/MultipartColorRamp",
+            "esri/rest/support/AlgorithmicColorRamp",
+            "esri/Color",
+            "esri/widgets/Legend",
+            "esri/widgets/Fullscreen",
+            "esri/layers/MapImageLayer",
+            "esri/widgets/LayerList",
+            "esri/Graphic",
+            "esri/layers/GraphicsLayer"
+        ], function (
+            Map,
+            MapView,
+            ImageryTileLayer,
+            TileLayer,
+            GroupLayer,
+            MultipartColorRamp,
+            AlgorithmicColorRamp,
+            Color,
+            Legend,
+            Fullscreen,
+            MapImageLayer,
+            LayerList,
+            Graphic,
+            GraphicsLayer
+        ) {
+            const sampleMap = new TileLayer({
+                url: "https://tiles.arcgis.com/tiles/nGt4QxSblgDfeJn9/arcgis/rest/services/Spilhaus_Vibrant_Basemap/MapServer"
+            });
+
+
+
+            const colorRamp = new MultipartColorRamp({
+                colorRamps: [
+                    new AlgorithmicColorRamp({
+                        fromColor: new Color([20, 100, 150, 255]),
+                        toColor: new Color([70, 0, 150, 255])
+                    }),
+                    new AlgorithmicColorRamp({
+                        fromColor: new Color([70, 0, 150, 255]),
+                        toColor: new Color([170, 0, 120, 255])
+                    }),
+                    new AlgorithmicColorRamp({
+                        fromColor: new Color([170, 0, 120, 255]),
+                        toColor: new Color([230, 100, 60, 255])
+                    }),
+                    new AlgorithmicColorRamp({
+                        fromColor: new Color([230, 100, 60, 255]),
+                        toColor: new Color([255, 170, 0, 255])
+                    }),
+                    new AlgorithmicColorRamp({
+                        fromColor: new Color([255, 170, 0, 255]),
+                        toColor: new Color([255, 255, 0, 255])
+                    })
+                ]
+            });
+
+
+            const temperatureLayer = new ImageryTileLayer({
+                url: "https://tiledimageservices.arcgis.com/jIL9msH9OI208GCb/arcgis/rest/services/HyCOM_Surface_Temperature___Spilhaus/ImageServer",
+                renderer: {
+                    colorRamp,
+                    stretchType: "min-max",
+                    type: "raster-stretch"
+                },
+                title: "Температуры",
+                visible: false
+            });
+
+
+            const currentsLayer = new ImageryTileLayer({
+                url: "https://tiledimageservices.arcgis.com/jIL9msH9OI208GCb/arcgis/rest/services/Spilhaus_UV_ocean_currents/ImageServer",
+                renderer: {
+                    type: "flow", // использование FlowRenderer
+                    density: 1,
+                    maxPathLength: 1000, // максимальная длинна отрезка потока
+                    trailWidth: "2px"
+                },
+                title: "Течения",
+                visible: false
+            });
+
+
+            //слой полигонов
+            const graphicsLayer = new GraphicsLayer({
+                title: "Районы",
+                visible: false
+            });
+
+            //координаты точки
+            const point = {
+                type: "point",
+                longitude: "-39.80500",
+                latitude: "64.02000700"
+            };
+
+            //отметка точки
+            const marker = {
+                type: "simple-marker",
+                color: [226, 119, 40],
+                outline: {
+                    color: [255, 255, 255],
+                    width: 1
+                }
+            }
+
+            //применяем точку к слою
+            const pointGraphic = new Graphic({
+                geometry: point,
+                symbol: marker
+            });
+            graphicsLayer.add(pointGraphic);
+
+
+            //изобраажем линии
+            const polyline = {
+                type: "polyline",
+                paths: [
+                    [-39.80500, 64.02000700],
+                    [-19.80510, 44.02000710],
+                    [-19.80500, 14.0200010000],
+                    [-37.910520, 54.02000720],
+                    [-39.80500, 64.0]
+
+                ]
+            };
+            const simpleLineSymbol = {
+                type: "simple-line",
+                color: [226, 119, 40],
+                width: 2
+            };
+
+            const polylineGraphic = new Graphic({
+                geometry: polyline,
+                symbol: simpleLineSymbol
+            });
+            graphicsLayer.add(polylineGraphic);
+
+
+            //заполняем полигон
+            const fillPolyline = {
+                type: "simple-fill",
+                color: [227, 139, 79, 0.4],
+                outline: {
+                    color: [255, 255, 255],
+                    width: 1
+                }
+            };
+
+            const polygonGraphic = new Graphic({
+                geometry: polyline,
+                symbol: fillPolyline,
+
+            });
+            graphicsLayer.add(polygonGraphic);
+
+            const groupLayer = new GroupLayer({
+                layers: [temperatureLayer, currentsLayer, graphicsLayer],
+                title: "Карта",
+                visible: true,
+                visibilityMode: "multiple",
+                opacity: 0.75
+            });
+
+            //создание карты и добавление группы слоёв
+            const map = new Map({
+                basemap: {
+                    baseLayers: [sampleMap]
+                },
+                layers: [groupLayer]
+            });
+
+            const view = new MapView({
+                container: "viewDiv",
+                map: map,
+                scale: 40000000,
+                center: [-289666, -3085785],
+            });
+
+
+            //event содержит характеристику объекта. каждый ListItem относится к своему слою карты
+            async function defineActions(event) {
+                const item = event.item;
+
+                await item.layer.when();
+
+                //поиск слоя по его названию
+                if (item.title === "Температуры") {
+
+                    //применение к массиву объектов слоя свойств
+                    item.actionsSections = [
+                        [
+                            {
+                                title: "Увеличить прозрачность",
+                                className: "esri-icon-up",
+                                id: "increase-opacity"
+                            },
+                            {
+                                title: "Уменьшить прозрачность",
+                                className: "esri-icon-down",
+                                id: "decrease-opacity"
+                            }
+                        ]
+                    ];
+                }
+            }
+
+            //меню со слоями LayerList
+            view.when(() => {
+                const layerList = new LayerList({
+                    view: view,
+                    listItemCreatedFunction: defineActions
+                });
+
+                //если действие произошло, то его фиксирует listener
+                layerList.on("trigger-action", (event) => {
+
+                    // видимый слой, сохраняем его id
+                    const id = event.action.id;
+
+
+                    if (id === "increase-opacity") {
+                        if (groupLayer.opacity < 1) {
+                            groupLayer.opacity += 0.25;
+                        }
+                    } else if (id === "decrease-opacity") {
+                        if (groupLayer.opacity > 0) {
+                            groupLayer.opacity -= 0.25;
+                        }
+                    }
+                });
+                view.ui.add(layerList, "top-right");
+            });
+
+
+            const legend = new Legend({
+                view: view,
+                layerInfos: [
+                    {
+                        layer: temperatureLayer,
+                        title: "Температуры водной поверхности"
+                    }
+                ]
+            });
+            view.ui.add(legend, "top-right");
+
+
+            const fullscreen = new Fullscreen({
+                view: view
+            });
+            view.ui.add(fullscreen, "top-left");
+        });
+    </script>
+</head>
+<body>
+<div id="viewDiv"></div>
+</body>
+</html>
+

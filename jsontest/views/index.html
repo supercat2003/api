@@ -1,0 +1,82 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta
+            name="viewport"
+            content="width=device-width"
+    />
+
+    <title>
+        Графики
+    </title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script src="https://js.arcgis.com/4.25/"></script>
+<!--    <script src="/js/script.js"></script>-->
+    <script src="/js/sc.js"></script>
+    <script src="/js/rSlider.min.js"></script>
+    <script type="module" src="/js/map-loader.js"></script>
+    <script src="/js/rSlider.min.js"></script>
+
+    <style>
+        html,
+        body,
+        #viewDiv {
+            padding:  0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+
+
+    <link
+            rel="stylesheet"
+            href="https://js.arcgis.com/4.25/esri/themes/light/main.css"
+    />
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <link rel="stylesheet" type="text/css" href="/css/slider.css">
+
+
+</head>
+<body>
+<div class="grid">
+    <div class="header"></div>
+    <div class="area-map">
+        <div id="viewDiv"></div>
+    </div>
+    <div class="space">
+        <div class="slider-container">
+            <input type="text" id="slider" class="slider">
+        </div>
+    </div>
+    <div class="area-chart">
+        <canvas id="myChart"></canvas>
+    </div>
+    <div class="space"></div>
+    <div class="area-chart">
+<!--        <canvas id="myChart1"></canvas>-->
+    </div>
+    <div class="footer"></div>
+</div>
+</body>
+<script>
+    const slider = new rSlider({
+        target: '#slider',
+        values: [2008, 2009, 2010, 2011, 2012, 2013],
+        range: false,
+        set:    null,
+        width:    null,
+        scale:    true,
+        labels:   true,
+        tooltip:  true,
+        step:     null,
+        disabled: false,
+        onChange: null
+    });
+
+    slider.addEventListener('input', function() {
+
+    }, false);
+</script>
+</html>

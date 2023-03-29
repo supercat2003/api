@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  api:
+    restart: always
+    build: ./api
+    ports:
+      - "8081:80"
+  frontend:
+    restart: always
+    build: ./jsontest
+    ports:
+      - "5001:5000"
+  postgres:
+    restart: always
+    build: ./postgres
+    expose: 
+      - "5432"
+    ports:
+      - "5432:5432"
+    command: -p 5432
+    environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: 231203
+        POSTGRES_DB: kometaDB
+  adminer:
+    restart: always
+    image: adminer
+    ports:
+      - 8888:8080
